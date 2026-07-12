@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, StatusBar, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, StatusBar, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/navigation';
-import { theme } from '../../theme';
-import { Button } from '../../components/Button';
 import { Loading } from '../../components/Loading';
 import { request } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 type AccessibilityScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Accessibility'>;
 
@@ -20,6 +19,23 @@ interface SecurityMetric {
   icon: string;
   description: string;
 }
+
+const C = {
+  bg: '#F4F6FA',
+  primary: '#6C5CE7',
+  primaryLight: '#EDE9FF',
+  text: '#1A1D2E',
+  sub: '#8A8FA8',
+  white: '#FFFFFF',
+  card: '#FFFFFF',
+  border: '#E8EBF4',
+  accent: '#00C9A7',
+  accentLight: '#E0FAF5',
+  danger: '#FF4757',
+  dangerLight: '#FFE8EB',
+  warn: '#FFA502',
+  warnLight: '#FFF3E0',
+};
 
 export const AccessibilityScreen: React.FC<Props> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
@@ -36,7 +52,6 @@ export const AccessibilityScreen: React.FC<Props> = ({ navigation }) => {
       setReport(data.deviceTrust);
       setDeviceTrustScore(data.deviceTrust.score);
     } catch (err) {
-      // Fallback in case of mock failure
       setReport({
         score: 95,
         rootDetected: false,
@@ -98,234 +113,250 @@ export const AccessibilityScreen: React.FC<Props> = ({ navigation }) => {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.header}>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>STEP 2 OF 4</Text>
+    <ScrollView style={s.container} contentContainerStyle={s.contentContainer} showsVerticalScrollIndicator={false}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      
+      <Animated.View entering={FadeInDown.delay(50).duration(500)} style={s.header}>
+        <View style={s.badge}>
+          <Text style={s.badgeText}>STEP 2 OF 4</Text>
         </View>
-        <Text style={styles.title}>System Diagnostics</Text>
-        <Text style={styles.subtitle}>
+        <Text style={s.title}>System Diagnostics</Text>
+        <Text style={s.subtitle}>
           SentinelPay scans system attributes to detect hook-in attempts or remote screen capture tools.
         </Text>
-      </View>
+      </Animated.View>
 
-      <View style={styles.scoreContainer}>
-        <View style={styles.scoreCircle}>
-          <Text style={styles.scoreText}>{report.score}</Text>
-          <Text style={styles.scoreLabel}>TRUST SCORE</Text>
+      {/* Trust Score Banner */}
+      <Animated.View entering={FadeInDown.delay(100).duration(500)} style={s.scoreContainer}>
+        <View style={[s.scoreCircle, { borderColor: report.score >= 90 ? C.accent : C.warn }]}>
+          <Text style={[s.scoreText, { color: report.score >= 90 ? C.accent : C.warn }]}>{report.score}</Text>
+          <Text style={s.scoreLabel}>INDEX</Text>
         </View>
-        <View style={styles.scoreInfo}>
-          <Text style={styles.scoreTitle}>Device Status: {report.score >= 90 ? 'Secure' : 'Warning'}</Text>
-          <Text style={styles.scoreDesc}>
+        <View style={s.scoreInfo}>
+          <Text style={s.scoreTitle}>Device Status: {report.score >= 90 ? 'Secure' : 'Warning'}</Text>
+          <Text style={s.scoreDesc}>
             Your device shows {report.score >= 90 ? 'optimal' : 'marginal'} compliance with UPI security policies.
           </Text>
         </View>
-      </View>
+      </Animated.View>
 
-      <View style={styles.metricsList}>
-        {metrics.map((metric, index) => (
-          <View key={index} style={styles.metricCard}>
-            <View style={styles.metricHeader}>
-              <View style={styles.metricTitleWrap}>
-                <Text style={styles.metricIcon}>{metric.icon}</Text>
-                <Text style={styles.metricName}>{metric.name}</Text>
+      {/* Metrics list */}
+      <Animated.View entering={FadeInDown.delay(150).duration(500)} style={s.metricsList}>
+        {metrics.map((metric, index) => {
+          const badgeColors = {
+            PASS: [C.accent, C.accentLight],
+            WARNING: [C.warn, C.warnLight],
+            FAIL: [C.danger, C.dangerLight],
+          }[metric.status];
+
+          return (
+            <View key={index} style={s.metricCard}>
+              <View style={s.metricHeader}>
+                <View style={s.metricTitleWrap}>
+                  <View style={s.metricIconBox}>
+                    <Text style={s.metricIcon}>{metric.icon}</Text>
+                  </View>
+                  <Text style={s.metricName}>{metric.name}</Text>
+                </View>
+                <View style={[s.statusBadge, { backgroundColor: badgeColors[1] }]}>
+                  <Text style={[s.statusBadgeText, { color: badgeColors[0] }]}>
+                    {metric.status}
+                  </Text>
+                </View>
               </View>
-              <View
-                style={[
-                  styles.statusBadge,
-                  metric.status === 'PASS' && styles.statusPass,
-                  metric.status === 'WARNING' && styles.statusWarn,
-                  metric.status === 'FAIL' && styles.statusFail,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.statusBadgeText,
-                    metric.status === 'PASS' && styles.textPass,
-                    metric.status === 'WARNING' && styles.textWarn,
-                    metric.status === 'FAIL' && styles.textFail,
-                  ]}
-                >
-                  {metric.status}
-                </Text>
-              </View>
+              <Text style={s.metricDesc}>{metric.description}</Text>
             </View>
-            <Text style={styles.metricDesc}>{metric.description}</Text>
-          </View>
-        ))}
-      </View>
+          );
+        })}
+      </Animated.View>
 
-      <View style={styles.footer}>
-        <Button
-          title="Audit System Again"
-          onPress={runSecurityAudit}
-          variant="secondary"
-          style={styles.button}
-        />
-        <Button
-          title="Proceed Securely"
-          onPress={handleProceed}
-          variant="primary"
-          style={[styles.button, styles.proceedBtn]}
-        />
-      </View>
+      <Animated.View entering={FadeInDown.delay(200).duration(500)} style={s.footer}>
+        <TouchableOpacity style={s.primaryBtn} onPress={handleProceed} activeOpacity={0.85}>
+          <Text style={s.primaryBtnText}>Proceed Securely</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.secondaryBtn} onPress={runSecurityAudit} activeOpacity={0.85}>
+          <Text style={s.secondaryBtnText}>Audit System Again</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: C.bg,
   },
   contentContainer: {
-    padding: theme.spacing.xl,
-    paddingTop: 60,
+    padding: 24,
+    paddingTop: Platform.OS === 'ios' ? 60 : 44,
     paddingBottom: 40,
   },
   header: {
-    marginBottom: theme.spacing.xl,
+    marginBottom: 24,
   },
   badge: {
-    backgroundColor: theme.colors.primaryLight,
-    paddingHorizontal: theme.spacing.sm,
+    backgroundColor: C.primaryLight,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: theme.roundness.sm,
+    borderRadius: 20,
     alignSelf: 'flex-start',
-    marginBottom: theme.spacing.sm,
+    marginBottom: 12,
   },
   badgeText: {
     fontSize: 9,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.primary,
+    fontWeight: '800',
+    color: C.primary,
     letterSpacing: 1.5,
   },
   title: {
-    fontSize: theme.typography.sizes.xl + 2,
-    fontWeight: theme.typography.weights.heavy,
-    color: theme.colors.text,
+    fontSize: 28,
+    fontWeight: '900',
+    color: C.text,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.textMuted,
-    lineHeight: theme.typography.lineHeights.sm,
-    marginTop: theme.spacing.xs,
+    fontSize: 14,
+    color: C.sub,
+    lineHeight: 20,
   },
   scoreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.backgroundSecondary,
-    borderRadius: theme.roundness.md,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
+    backgroundColor: C.card,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: C.border,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
   },
   scoreCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: theme.colors.background,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: C.bg,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2.5,
-    borderColor: theme.colors.primary,
-    ...theme.shadows.soft,
+    borderWidth: 3,
   },
   scoreText: {
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.primary,
+    fontSize: 20,
+    fontWeight: '900',
   },
   scoreLabel: {
-    fontSize: 7,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.textMuted,
-    marginTop: 2,
+    fontSize: 8,
+    fontWeight: '800',
+    color: C.sub,
+    marginTop: 1,
   },
   scoreInfo: {
     flex: 1,
-    marginLeft: theme.spacing.lg,
+    marginLeft: 16,
   },
   scoreTitle: {
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.text,
+    fontSize: 15,
+    fontWeight: '800',
+    color: C.text,
   },
   scoreDesc: {
-    fontSize: theme.typography.sizes.xs,
-    color: theme.colors.textMuted,
+    fontSize: 12,
+    color: C.sub,
     marginTop: 4,
-    lineHeight: theme.typography.lineHeights.xs,
+    lineHeight: 16,
   },
   metricsList: {
-    marginBottom: theme.spacing.xl,
+    marginBottom: 24,
   },
   metricCard: {
-    backgroundColor: theme.colors.cardBackground,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.roundness.md,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
+    backgroundColor: C.card,
+    borderWidth: 1.5,
+    borderColor: C.border,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
   },
   metricHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   metricTitleWrap: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  metricIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: C.bg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
   metricIcon: {
     fontSize: 18,
-    marginRight: theme.spacing.sm,
   },
   metricName: {
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.semibold,
-    color: theme.colors.text,
+    fontSize: 14,
+    fontWeight: '800',
+    color: C.text,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: theme.roundness.sm,
-  },
-  statusPass: {
-    backgroundColor: '#E8F5E9',
-  },
-  statusWarn: {
-    backgroundColor: '#FFF3E0',
-  },
-  statusFail: {
-    backgroundColor: '#FFEBEE',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
   statusBadgeText: {
     fontSize: 9,
-    fontWeight: theme.typography.weights.bold,
-  },
-  textPass: {
-    color: theme.colors.riskLow,
-  },
-  textWarn: {
-    color: theme.colors.riskMedium,
-  },
-  textFail: {
-    color: theme.colors.riskHigh,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   metricDesc: {
-    fontSize: theme.typography.sizes.xs,
-    color: theme.colors.textMuted,
-    lineHeight: theme.typography.lineHeights.xs,
+    fontSize: 11,
+    color: C.sub,
+    lineHeight: 16,
+    marginTop: 2,
   },
   footer: {
-    marginTop: theme.spacing.md,
+    gap: 12,
   },
-  button: {
+  primaryBtn: {
     width: '100%',
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: C.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  proceedBtn: {
-    marginTop: theme.spacing.md,
+  primaryBtnText: {
+    color: C.white,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  secondaryBtn: {
+    width: '100%',
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: C.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: C.border,
+  },
+  secondaryBtnText: {
+    color: C.text,
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

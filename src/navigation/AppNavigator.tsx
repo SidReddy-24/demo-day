@@ -36,7 +36,7 @@ export const AppNavigator = () => {
         initialRouteName="Splash"
         screenOptions={{
           headerShown: false,
-          cardStyle: { backgroundColor: '#fff8f5' },
+          cardStyle: { backgroundColor: '#F4F6FA' },
           gestureEnabled: false, // Ensure users navigate through security steps sequentially
           cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
         }}

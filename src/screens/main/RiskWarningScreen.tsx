@@ -196,12 +196,13 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 70 : 60,
     justifyContent: 'space-between',
     paddingBottom: 40,
+    backgroundColor: theme.colors.background,
   },
   containerMedium: {
-    backgroundColor: '#E65100', // Deep warn orange background
+    backgroundColor: theme.colors.background,
   },
   containerHigh: {
-    backgroundColor: '#B71C1C', // Deep block red background
+    backgroundColor: theme.colors.background,
   },
   header: {
     alignItems: 'center',
@@ -237,8 +238,9 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   explanationCard: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 0,
+    backgroundColor: theme.colors.cardBackground,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     padding: theme.spacing.lg,
   },
   scoreRow: {
@@ -303,7 +305,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   overrideBtn: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.cardBackground,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     shadowColor: 'transparent',
   },
   textBtn: {
@@ -323,31 +327,31 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   scamPatternText: {
-    color: '#bef264',
+    color: theme.colors.primary,
     fontSize: 11,
     fontWeight: '800',
   },
   confidenceChip: {
-    backgroundColor: '#bef264',
+    backgroundColor: theme.colors.primary,
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   confidenceText: {
-    color: '#1c1c1e',
+    color: '#ffffff',
     fontSize: 9,
     fontWeight: '900',
   },
   voiceBubble: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: theme.colors.backgroundSecondary,
     borderRadius: 16,
     padding: 12,
     marginBottom: 12,
     borderLeftWidth: 3,
-    borderLeftColor: '#bef264',
+    borderLeftColor: theme.colors.primary,
   },
   voiceTitle: {
-    color: '#bef264',
+    color: theme.colors.primary,
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 1,
@@ -369,7 +373,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   timelineLinkText: {
-    color: '#bef264',
+    color: theme.colors.primary,
     fontSize: 11,
     fontWeight: '700',
     textDecorationLine: 'underline',

@@ -55,7 +55,7 @@ export const AmountEntryScreen = ({ route, navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
 
       {/* Light Upper Section */}
       <View style={styles.topSection}>
@@ -99,7 +99,7 @@ export const AmountEntryScreen = ({ route, navigation }: any) => {
                 <TouchableOpacity
                   key={keyIndex}
                   onPress={() => (key === '⌫' ? handleBackspace() : handleKeyPress(key))}
-                  style={[styles.keypadButton, key === '⌫' && styles.backspaceButton]}
+                  style={[styles.keypadButton, key === '⌫' ? styles.backspaceButton : undefined]}
                 >
                   <Text style={styles.keyText}>{key}</Text>
                 </TouchableOpacity>
@@ -109,7 +109,7 @@ export const AmountEntryScreen = ({ route, navigation }: any) => {
         </View>
 
         <Button
-          title="Proceed to Verify"
+          title="Continue"
           onPress={handleContinue}
           variant="primary"
           style={styles.continueBtn}
@@ -122,11 +122,11 @@ export const AmountEntryScreen = ({ route, navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff8f5', // Light pinkish ivory background
-    paddingTop: Platform.OS === 'ios' ? 60 : 50,
+    backgroundColor: theme.colors.background,
   },
   topSection: {
     flex: 1,
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
     paddingHorizontal: theme.spacing.xl,
     paddingBottom: theme.spacing.lg,
   },
@@ -139,7 +139,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f7f6f2',
+    backgroundColor: theme.colors.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
@@ -158,7 +160,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f7f6f2', // Soft warm off-white
+    backgroundColor: theme.colors.cardBackground,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     padding: theme.spacing.md,
     borderRadius: 20,
     marginVertical: theme.spacing.xs,
@@ -195,12 +199,14 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   blackSection: {
-    backgroundColor: '#1c1c1e', // Signature rounded dark slate section
+    backgroundColor: theme.colors.backgroundSecondary, // Signature rounded dark slate section
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
     paddingHorizontal: theme.spacing.xl,
     paddingTop: theme.spacing.xl,
     paddingBottom: Platform.OS === 'ios' ? 40 : 30,
+    borderWidth: 1,
+    borderTopColor: theme.colors.border,
   },
   keypad: {
     width: '100%',
@@ -215,18 +221,20 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 56,
     borderRadius: 16,
-    backgroundColor: '#2e2e30', // Soft charcoal buttons that blend into dark mode container
+    backgroundColor: theme.colors.cardBackground, // Slate buttons
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 6,
   },
   backspaceButton: {
-    backgroundColor: '#2e2e30', // Symmetrical key pad shape
+    backgroundColor: theme.colors.cardBackground,
   },
   keyText: {
     fontSize: theme.typography.sizes.xl - 4,
     fontWeight: theme.typography.weights.bold,
-    color: '#ffffff', // High legibility white text
+    color: theme.colors.text, // Legible silver/white text
   },
   continueBtn: {
     width: '100%',

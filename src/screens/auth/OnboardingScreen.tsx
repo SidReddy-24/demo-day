@@ -1,88 +1,147 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Text, FlatList, Dimensions, StatusBar, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../types/navigation';
+import {
+  StyleSheet, View, Text, FlatList, Dimensions,
+  StatusBar, TouchableOpacity, Platform,
+} from 'react-native';
+import Animated, {
+  FadeInDown, FadeInUp, useSharedValue, withTiming,
+  useAnimatedStyle, interpolate, withSpring,
+} from 'react-native-reanimated';
+import Svg, { Path, Circle, Rect, Polygon } from 'react-native-svg';
 import { useAuthStore } from '../../store/authStore';
-import { theme } from '../../theme';
-import { Button } from '../../components/Button';
 
-type OnboardingScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Onboarding'>;
+const { width, height } = Dimensions.get('window');
 
-interface Props {
-  navigation: OnboardingScreenNavigationProp;
-}
+const C = {
+  bg: '#F4F6FA',
+  primary: '#6C5CE7',
+  primaryLight: '#EDE9FF',
+  primaryDark: '#4A3AB5',
+  accent: '#00C9A7',
+  text: '#1A1D2E',
+  sub: '#8A8FA8',
+  white: '#FFFFFF',
+  card: '#FFFFFF',
+  border: '#E8EBF4',
+};
 
 interface Slide {
   id: string;
-  icon: string;
+  emoji: string;
+  bgColor: string;
+  iconBg: string;
   title: string;
-  description: string;
-  disclaimer?: boolean;
+  subtitle: string;
+  tag?: string;
 }
-
-const { width } = Dimensions.get('window');
 
 const SLIDES: Slide[] = [
   {
     id: '1',
-    icon: '🛡️',
+    emoji: '🛡️',
+    bgColor: '#EDE9FF',
+    iconBg: C.primary,
     title: 'Simulated Security',
-    description: 'SentinelPay AI is a secure UPI simulation built strictly for hackathons. No real banking credentials or money transactions occur.',
-    disclaimer: true,
+    subtitle: 'SentinelPay AI is a secure UPI simulation. No real banking credentials or money are involved — strictly sandbox.',
+    tag: 'SANDBOX ONLY',
   },
   {
     id: '2',
-    icon: '🧠',
+    emoji: '🧠',
+    bgColor: '#E0FAF5',
+    iconBg: C.accent,
     title: 'AI Fraud Detection',
-    description: 'Analyze real-time transaction anomalies, device trust levels, and user behaviors using mocked AI models and graph engines.',
+    subtitle: 'Real-time anomaly detection, device trust scoring, and behavioural biometrics powered by a mocked AI engine.',
   },
   {
     id: '3',
-    icon: '👥',
-    title: 'Community Trust',
-    description: 'Crowdsource fraud reports, verify scam merchants dynamically, and flag malicious QR codes instantly across the local ecosystem.',
+    emoji: '👥',
+    bgColor: '#E8EBF4',
+    iconBg: '#1A1D2E',
+    title: 'Community Shield',
+    subtitle: 'Crowdsource scam reports, flag malicious QR codes, and verify merchant trust scores across the ecosystem.',
   },
 ];
 
-export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
+const SlideIllustration = ({ slide }: { slide: Slide }) => (
+  <View style={[si.illustrationWrap, { backgroundColor: slide.bgColor }]}>
+    {/* Decorative circles */}
+    <View style={si.decCircle1} />
+    <View style={si.decCircle2} />
+    {/* Main icon circle */}
+    <View style={[si.iconCircle, { backgroundColor: slide.iconBg }]}>
+      <Text style={si.emoji}>{slide.emoji}</Text>
+    </View>
+    {/* Small floating badges */}
+    <View style={[si.badge1, { backgroundColor: C.white }]}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: slide.iconBg }}>✓ Secure</Text>
+    </View>
+    <View style={[si.badge2, { backgroundColor: C.white }]}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: C.text }}>AI Ready</Text>
+    </View>
+  </View>
+);
+
+const si = StyleSheet.create({
+  illustrationWrap: { width: width - 40, height: 280, borderRadius: 32, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', marginHorizontal: 20 },
+  decCircle1: { position: 'absolute', width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(255,255,255,0.35)', top: -40, right: -40 },
+  decCircle2: { position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.2)', bottom: -20, left: -20 },
+  iconCircle: { width: 110, height: 110, borderRadius: 55, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 8 },
+  emoji: { fontSize: 48 },
+  badge1: { position: 'absolute', top: 28, right: 28, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 },
+  badge2: { position: 'absolute', bottom: 32, left: 28, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 },
+});
+
+export const OnboardingScreen = ({ navigation }: any) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList<Slide>>(null);
-  const setOnboarded = useAuthStore((state) => state.setOnboarded);
+  const setOnboarded = useAuthStore(s => s.setOnboarded);
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const slideIndex = Math.round(event.nativeEvent.contentOffset.x / width);
-    setCurrentIndex(slideIndex);
+  const handleScroll = (e: any) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.x / width);
+    setCurrentIndex(idx);
   };
 
   const handleNext = () => {
     if (currentIndex < SLIDES.length - 1) {
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
+      setCurrentIndex(currentIndex + 1);
     } else {
       setOnboarded(true);
       navigation.replace('Welcome');
     }
   };
 
-  const renderSlide = ({ item }: { item: Slide }) => {
-    return (
-      <View style={styles.slide}>
-        <View style={[styles.iconContainer, item.disclaimer && styles.disclaimerIconContainer]}>
-          <Text style={styles.icon}>{item.icon}</Text>
-        </View>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.description}>{item.description}</Text>
-        {item.disclaimer && (
-          <View style={styles.disclaimerBadge}>
-            <Text style={styles.disclaimerText}>SANDBOX MODE ONLY</Text>
+  const handleSkip = () => {
+    setOnboarded(true);
+    navigation.replace('Welcome');
+  };
+
+  const renderSlide = ({ item }: { item: Slide }) => (
+    <View style={s.slide}>
+      <SlideIllustration slide={item} />
+      <View style={s.textWrap}>
+        <Text style={s.slideTitle}>{item.title}</Text>
+        <Text style={s.slideDesc}>{item.subtitle}</Text>
+        {item.tag && (
+          <View style={s.tagBadge}>
+            <Text style={s.tagText}>{item.tag}</Text>
           </View>
         )}
       </View>
-    );
-  };
+    </View>
+  );
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <View style={s.root}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+
+      {/* Skip button */}
+      <Animated.View entering={FadeInUp.delay(100).duration(400)} style={s.topBar}>
+        <Text style={s.skipText} onPress={handleSkip}>Skip</Text>
+      </Animated.View>
+
+      {/* Slides */}
       <FlatList
         ref={flatListRef}
         data={SLIDES}
@@ -92,106 +151,52 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
+        style={{ flexGrow: 0 }}
       />
-      <View style={styles.footer}>
-        <View style={styles.indicatorContainer}>
-          {SLIDES.map((_, index) => (
+
+      {/* Footer */}
+      <Animated.View entering={FadeInDown.delay(200).duration(500)} style={s.footer}>
+        {/* Dots */}
+        <View style={s.dots}>
+          {SLIDES.map((_, i) => (
             <View
-              key={index}
-              style={[
-                styles.indicator,
-                currentIndex === index && styles.activeIndicator,
-              ]}
+              key={i}
+              style={[s.dot, i === currentIndex && s.dotActive, i === currentIndex && { backgroundColor: SLIDES[i].iconBg }]}
             />
           ))}
         </View>
-        <Button
-          title={currentIndex === SLIDES.length - 1 ? 'Get Started' : 'Continue'}
+        {/* Next / Get Started */}
+        <TouchableOpacity
+          style={[s.nextBtn, { backgroundColor: SLIDES[currentIndex].iconBg }]}
           onPress={handleNext}
-          variant="primary"
-          style={styles.button}
-        />
-      </View>
+          activeOpacity={0.85}
+        >
+          <Text style={s.nextText}>
+            {currentIndex === SLIDES.length - 1 ? 'Get Started →' : 'Continue →'}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  slide: {
-    width,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.spacing.xxl,
-  },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: theme.colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: theme.spacing.xxl,
-    ...theme.shadows.soft,
-  },
-  disclaimerIconContainer: {
-    backgroundColor: '#FFF3E0', // warning orange light
-  },
-  icon: {
-    fontSize: 54,
-  },
-  title: {
-    fontSize: theme.typography.sizes.xl + 2,
-    fontWeight: theme.typography.weights.heavy,
-    color: theme.colors.text,
-    textAlign: 'center',
-    marginBottom: theme.spacing.md,
-  },
-  description: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.textMuted,
-    textAlign: 'center',
-    lineHeight: theme.typography.lineHeights.md,
-    paddingHorizontal: theme.spacing.md,
-  },
-  disclaimerBadge: {
-    backgroundColor: '#FFE0B2',
-    paddingVertical: 6,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.roundness.sm,
-    marginTop: theme.spacing.xl,
-  },
-  disclaimerText: {
-    fontSize: 10,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.riskMedium,
-    letterSpacing: 1.5,
-  },
-  footer: {
-    paddingHorizontal: theme.spacing.xxl,
-    paddingBottom: 50,
-  },
-  indicatorContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: theme.spacing.xl,
-  },
-  indicator: {
-    height: 6,
-    width: 6,
-    borderRadius: 3,
-    backgroundColor: theme.colors.border,
-    marginHorizontal: 4,
-  },
-  activeIndicator: {
-    backgroundColor: theme.colors.primary,
-    width: 18,
-  },
-  button: {
-    width: '100%',
-  },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  topBar: { paddingTop: Platform.OS === 'ios' ? 56 : 44, paddingHorizontal: 24, alignItems: 'flex-end', marginBottom: 16 },
+  skipText: { fontSize: 14, color: C.sub, fontWeight: '700' },
+
+  slide: { width, paddingHorizontal: 0, paddingTop: 8, paddingBottom: 16 },
+  textWrap: { paddingHorizontal: 28, marginTop: 30 },
+  slideTitle: { fontSize: 28, fontWeight: '900', color: C.text, marginBottom: 10 },
+  slideDesc: { fontSize: 15, color: C.sub, lineHeight: 23, marginBottom: 16 },
+  tagBadge: { alignSelf: 'flex-start', backgroundColor: '#FFE0B2', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20 },
+  tagText: { fontSize: 10, fontWeight: '800', color: '#F57C00', letterSpacing: 1.5 },
+
+  footer: { paddingHorizontal: 28, paddingBottom: Platform.OS === 'ios' ? 50 : 36, gap: 20 },
+  dots: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.border },
+  dotActive: { width: 24 },
+  nextBtn: { width: '100%', height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 6 },
+  nextText: { color: C.white, fontSize: 15, fontWeight: '800' },
 });

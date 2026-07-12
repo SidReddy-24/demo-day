@@ -57,12 +57,12 @@ export const PaymentSuccessScreen = ({ route, navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
       
       {/* Top Header */}
       <View style={styles.header}>
         <Text style={styles.brandTitle}>
-          Sentinel<Text style={{ color: '#bef264' }}>Pay</Text>
+          Sentinel<Text style={{ color: theme.colors.primary }}>Pay</Text>
         </Text>
         <View style={styles.infoCircle}>
           <Text style={styles.infoIconText}>i</Text>
@@ -171,7 +171,7 @@ export const PaymentSuccessScreen = ({ route, navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#101217', // Deep premium dark background
+    backgroundColor: theme.colors.background, // Theme Slate background
     paddingHorizontal: theme.spacing.xl,
     paddingTop: Platform.OS === 'ios' ? 60 : 50,
     justifyContent: 'space-between',
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#101217', // Match outer dark background
+    backgroundColor: theme.colors.background, // Match outer dark theme background
   },
   rightNotch: {
     position: 'absolute',
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#101217',
+    backgroundColor: theme.colors.background,
   },
   detailsList: {
     width: '100%',
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     width: '58%',
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#22c55e',
+    backgroundColor: theme.colors.riskLow, // Emerald success green
     justifyContent: 'center',
     alignItems: 'center',
   },

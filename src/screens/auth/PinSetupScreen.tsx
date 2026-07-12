@@ -2,14 +2,25 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, StatusBar, TouchableOpacity, Alert, Platform } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/navigation';
-import { theme } from '../../theme';
 import { useAuthStore } from '../../store/authStore';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 type PinSetupScreenNavigationProp = StackNavigationProp<RootStackParamList, 'PinSetup'>;
 
 interface Props {
   navigation: PinSetupScreenNavigationProp;
 }
+
+const C = {
+  bg: '#F4F6FA',
+  primary: '#6C5CE7',
+  primaryLight: '#EDE9FF',
+  text: '#1A1D2E',
+  sub: '#8A8FA8',
+  white: '#FFFFFF',
+  card: '#FFFFFF',
+  border: '#E8EBF4',
+};
 
 export const PinSetupScreen: React.FC<Props> = ({ navigation }) => {
   const [pin, setPin] = useState('');
@@ -24,7 +35,6 @@ export const PinSetupScreen: React.FC<Props> = ({ navigation }) => {
       setPin(nextPin);
       
       if (nextPin.length === 4) {
-        // Handle completing pin code input
         setTimeout(() => {
           if (!confirming) {
             setFirstPin(nextPin);
@@ -67,152 +77,161 @@ export const PinSetupScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.header}>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>STEP 4 OF 4</Text>
+    <View style={s.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      
+      <Animated.View entering={FadeInDown.delay(50).duration(500)} style={s.header}>
+        <View style={s.badge}>
+          <Text style={s.badgeText}>STEP 4 OF 4</Text>
         </View>
-        <Text style={styles.title}>
+        <Text style={s.title}>
           {confirming ? 'Confirm Secure PIN' : 'Set Secure PIN'}
         </Text>
-        <Text style={styles.subtitle}>
+        <Text style={s.subtitle}>
           {confirming
             ? 'Re-enter your 4-digit passcode to verify'
             : 'Create a security PIN for authenticating your UPI simulation'}
         </Text>
-      </View>
+      </Animated.View>
 
       {/* Dots Indicator */}
-      <View style={styles.dotsContainer}>
+      <Animated.View entering={FadeInDown.delay(100).duration(500)} style={s.dotsContainer}>
         {[0, 1, 2, 3].map((index) => (
           <View
             key={index}
             style={[
-              styles.dot,
-              pin.length > index && styles.dotFilled,
+              s.dot,
+              pin.length > index && s.dotFilled,
             ]}
           />
         ))}
-      </View>
+      </Animated.View>
 
       {/* Custom Keypad */}
-      <View style={styles.keypad}>
+      <Animated.View entering={FadeInDown.delay(150).duration(500)} style={s.keypad}>
         {[
           ['1', '2', '3'],
           ['4', '5', '6'],
           ['7', '8', '9'],
           ['', '0', '⌫'],
         ].map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.row}>
+          <View key={rowIndex} style={s.row}>
             {row.map((key, keyIndex) => {
               if (key === '') {
-                return <View key={keyIndex} style={styles.keypadButtonSpacer} />;
+                return <View key={keyIndex} style={s.keypadButtonSpacer} />;
               }
               return (
                 <TouchableOpacity
                   key={keyIndex}
                   onPress={() => (key === '⌫' ? handleBackspace() : handleKeyPress(key))}
-                  style={[styles.keypadButton, key === '⌫' && styles.backspaceButton]}
+                  style={[s.keypadButton, key === '⌫' && s.backspaceButton]}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.keyText}>{key}</Text>
+                  <Text style={s.keyText}>{key}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
         ))}
-      </View>
+      </Animated.View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: C.bg,
     justifyContent: 'space-between',
-    padding: theme.spacing.xl,
-    paddingTop: 60,
+    padding: 24,
+    paddingTop: Platform.OS === 'ios' ? 60 : 44,
     paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
-    marginBottom: theme.spacing.lg,
+    marginBottom: 12,
   },
   badge: {
-    backgroundColor: theme.colors.primaryLight,
-    paddingHorizontal: theme.spacing.sm,
+    backgroundColor: C.primaryLight,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: theme.roundness.sm,
-    marginBottom: theme.spacing.sm,
+    borderRadius: 20,
+    marginBottom: 12,
   },
   badgeText: {
     fontSize: 9,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.primary,
+    fontWeight: '800',
+    color: C.primary,
     letterSpacing: 1.5,
   },
   title: {
-    fontSize: theme.typography.sizes.xl,
-    fontWeight: theme.typography.weights.heavy,
-    color: theme.colors.text,
+    fontSize: 28,
+    fontWeight: '900',
+    color: C.text,
   },
   subtitle: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.textMuted,
+    fontSize: 14,
+    color: C.sub,
     textAlign: 'center',
-    marginTop: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.xl,
-    lineHeight: theme.typography.lineHeights.sm,
+    marginTop: 8,
+    paddingHorizontal: 20,
+    lineHeight: 20,
   },
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginVertical: theme.spacing.xxl,
+    marginVertical: 32,
   },
   dot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: theme.colors.borderDark,
-    marginHorizontal: theme.spacing.md,
-    backgroundColor: 'transparent',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: C.border,
+    marginHorizontal: 10,
+    backgroundColor: C.white,
   },
   dotFilled: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    backgroundColor: C.primary,
+    borderColor: C.primary,
   },
   keypad: {
     width: '100%',
-    paddingHorizontal: theme.spacing.xl,
+    paddingHorizontal: 12,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: theme.spacing.sm,
+    marginVertical: 10,
   },
   keypadButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: theme.colors.backgroundSecondary,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: C.card,
     justifyContent: 'center',
     alignItems: 'center',
-    ...theme.shadows.soft,
+    borderWidth: 1,
+    borderColor: C.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   keypadButtonSpacer: {
-    width: 70,
-    height: 70,
+    width: 72,
+    height: 72,
   },
   backspaceButton: {
     backgroundColor: 'transparent',
+    borderColor: 'transparent',
     shadowOpacity: 0,
     elevation: 0,
   },
   keyText: {
-    fontSize: theme.typography.sizes.xl - 2,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.text,
+    fontSize: 22,
+    fontWeight: '800',
+    color: C.text,
   },
 });

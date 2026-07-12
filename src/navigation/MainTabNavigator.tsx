@@ -3,6 +3,7 @@ import { StyleSheet, View, Platform, Text, Pressable, useWindowDimensions } from
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { HomeIcon, ProfileIcon, QrScanIcon } from '../components/Icons';
+import { theme } from '../theme';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -28,7 +29,7 @@ const getVisualSlotX = (navigatorIndex: number, slotWidth: number) => {
   return visualSlot * slotWidth + (slotWidth - BUBBLE_SIZE) / 2;
 };
 
-// Sliding lime bubble
+// Sliding crimson bubble
 const SlidingBubble = ({ index, slotWidth }: { index: number; slotWidth: number }) => {
   const translateX = useSharedValue(getVisualSlotX(index, slotWidth));
   const scaleX = useSharedValue(1);
@@ -106,7 +107,7 @@ const QrCentreButton = ({ slotWidth }: { slotWidth: number }) => {
     <View style={[styles.qrSlot, { width: slotWidth }]}>
       <Animated.View style={animStyle}>
         <Pressable onPress={handlePress} style={styles.qrButton}>
-          <QrScanIcon color="#1c1c1e" size={26} />
+          <QrScanIcon color={theme.colors.background} size={26} />
         </Pressable>
       </Animated.View>
       <Text style={styles.qrLabel}>Scan</Text>
@@ -135,7 +136,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
       }
     };
 
-    const iconColor = isFocused ? '#1c1c1e' : '#9ca3af';
+    const iconColor = isFocused ? '#FFFFFF' : '#8A8FA8';
     const size = 22;
     let icon = null;
     switch (route.name) {
@@ -157,7 +158,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
           <TabIcon focused={isFocused}>{icon}</TabIcon>
         </View>
         <Text
-          style={[styles.label, { color: isFocused ? '#bef264' : '#6b7280' }]}
+          style={[styles.label, { color: isFocused ? '#6C5CE7' : '#8A8FA8' }]}
           numberOfLines={1}
         >
           {label}
@@ -200,14 +201,19 @@ export const MainTabNavigator = () => {
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#2e2e30',
+    borderTopColor: '#E8EBF4',
     height: TAB_BAR_HEIGHT,
     paddingBottom: Platform.OS === 'ios' ? 16 : 8,
     paddingTop: 6,
     position: 'relative',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 8,
   },
   bubble: {
     position: 'absolute',
@@ -215,11 +221,11 @@ const styles = StyleSheet.create({
     width: BUBBLE_SIZE,
     height: BUBBLE_SIZE,
     borderRadius: BUBBLE_SIZE / 2,
-    backgroundColor: '#bef264',
-    shadowColor: '#bef264',
+    backgroundColor: '#6C5CE7',
+    shadowColor: '#6C5CE7',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
     elevation: 6,
   },
   tabButton: {
@@ -247,22 +253,22 @@ const styles = StyleSheet.create({
     width: QR_BUTTON_SIZE,
     height: QR_BUTTON_SIZE,
     borderRadius: QR_BUTTON_SIZE / 2,
-    backgroundColor: '#bef264',
+    backgroundColor: '#6C5CE7',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: -20,
-    shadowColor: '#bef264',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.6,
-    shadowRadius: 14,
+    shadowColor: '#6C5CE7',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
     elevation: 12,
     borderWidth: 3,
-    borderColor: '#1c1c1e',
+    borderColor: '#FFFFFF',
   },
   qrLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#bef264',
+    color: '#6C5CE7',
     letterSpacing: 0.2,
     marginTop: 3,
   },
